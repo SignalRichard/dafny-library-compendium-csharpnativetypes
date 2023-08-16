@@ -1,4 +1,6 @@
 module Compendium.CSharpNativeTypes {
+  // ref: https://dafny.org/latest/DafnyRef/DafnyRef#sec-nativetype
+  // ref: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/integral-numeric-types
   newtype {:nativeType "sbyte"} sbyte = x | -0x80 <= x < 0x80 // -128 to 127
   newtype {:nativeType "byte"} byte = x | 0x0 <= x < 0x100 // 0 to 255
   newtype {:nativeType "short"} short = x | -0x8000 <= x < 0x8000 // -32,768 to 32,767
