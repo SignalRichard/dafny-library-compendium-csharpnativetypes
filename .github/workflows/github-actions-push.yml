@@ -51,9 +51,7 @@ jobs:
       with:
         persist-credentials: false
     - name: "Install Dafny"
-      uses: dafny-lang/setup-dafny-action@v1
-      with:
-        dafny-version: ${{ env.DAFNY_VERSION }}
+      run: ./..build/scripts/Install-Dafny.ps1
     - name: Dafny Verify
       run: ./../build/scripts/Test-Dafny.ps1 -InputFiles @("${{ env.SCRIPT_NAME }}.dfy")
   Build:
@@ -69,9 +67,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: "Install Dafny"
-      uses: dafny-lang/setup-dafny-action@v1
-      with:
-        dafny-version: ${{ env.DAFNY_VERSION }}
+      run: ./..build/scripts/Install-Dafny.ps1
     - name: Dafny Build
       run: ./../build/scripts/Build-Dafny.ps1 -InputFiles @("${{ env.SCRIPT_NAME }}.dfy") -OutputFile "${{ env.PACKAGE_NAME }}"
     - name: Publish Artifact
