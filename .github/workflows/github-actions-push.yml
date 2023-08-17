@@ -1,0 +1,120 @@
+name: dafny library csharp native types
+on:
+  push:
+  pull_request:
+    branches:
+    - main
+    - feature/*
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+env:
+  SCRIPT_NAME: Compendium.CSharpNativeTypes
+  PACKAGE_NAME: Compendium.CSharpNativeTypes.doo
+  ARTIFACT_NAME: library
+  NODE_VERSION: '18'
+  DAFNY_VERSION: '4.2.0'
+defaults:
+  run:
+    shell: pwsh
+jobs:
+  SemanticVersion:
+    runs-on: ubuntu-latest
+    outputs:
+      semantic_version: ${{ steps.semantic_release.outputs.SEMANTIC_VERSION }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        persist-credentials: false
+    - name: Setup Node Version
+      uses: actions/setup-node@master
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - name: Node Package Restore
+      run: ./build/scripts/Install-NodePackages.ps1
+    - name: Semantic Release (Dry-Run)
+      id: semantic_release
+      run: ./build/scripts/Invoke-SemanticRelease.ps1 -DryRun
+      env:
+        GH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+        GH_REF: ${{ github.ref }}
+  Test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: src
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        persist-credentials: false
+    - name: "Install Dafny"
+      run: ./../build/scripts/Install-Dafny.ps1 -InstallPath "$env:RUNNER_TEMP"
+    - name: Dafny Verify
+      run: ./../build/scripts/Test-Dafny.ps1 -InputFiles @("${{ env.SCRIPT_NAME }}.dfy")
+  Build:
+    runs-on: ubuntu-latest
+    needs:
+    - SemanticVersion
+    - Test
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: src
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: "Install Dafny"
+      run: ./../build/scripts/Install-Dafny.ps1 -InstallPath "$env:RUNNER_TEMP"
+    - name: Dafny Build
+      run: ./../build/scripts/Build-Dafny.ps1 -InputFiles @("${{ env.SCRIPT_NAME }}.dfy") -OutputFile "${{ env.PACKAGE_NAME }}"
+    - name: Publish Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: src/${{ env.PACKAGE_NAME }}
+  Release:
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    environment: Cloudsmith
+    needs:
+    - SemanticVersion
+    - Build
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Download Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: a/${{ env.ARTIFACT_NAME }}
+    - name: Setup Node Version
+      uses: actions/setup-node@master
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - name: Node Package Restore
+      run: ./build/scripts/Install-NodePackages.ps1
+    - name: Semantic Release
+      id: semantic_release
+      run: ./build/scripts/Invoke-SemanticRelease.ps1
+      env:
+        GH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+        GH_REF: ${{ github.ref }}
+    - name: Publish Cloudsmith
+      uses: cloudsmith-io/action@master
+      with:
+        api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
+        command: "push"
+        format: "raw"
+        owner: "cosmo-athenaeum"
+        repo: "dafny"
+        file: "a/${{ env.ARTIFACT_NAME }}"
+        name: "${{ env.ARTIFACT_NAME }}"
+        summary: "Dafny newtype declarations for C# native types"
+        description: "See https://github.com/SignalRichard/dafny-library-compendium-csharpnativetypes"
+        version: ${{ needs.SemanticVersion.outputs.semantic_version }}
