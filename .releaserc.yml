@@ -17,7 +17,7 @@ plugins:
     generateNotesCmd: "echo '${nextRelease.notes}' > RELEASE-NOTES.md"
   - path: "@semantic-release/github"
     assets:
-    - path: a/Compendium.CSharpNativeTypes.doo
+    - path: a/library/Compendium.CSharpNativeTypes.doo
       label: Compendium.CSharpNativeTypes.doo
   - path: "@semantic-release/git"
     assets:

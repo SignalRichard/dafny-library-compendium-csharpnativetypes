@@ -113,8 +113,8 @@ jobs:
         format: "raw"
         owner: "cosmo-athenaeum"
         repo: "dafny"
-        file: "a/${{ env.ARTIFACT_NAME }}"
-        name: "${{ env.ARTIFACT_NAME }}"
+        file: "a/${{ env.ARTIFACT_NAME }}/${{ env.PACKAGE_NAME}}"
+        name: "${{ env.PACKAGE_NAME }}"
         summary: "Dafny newtype declarations for C# native types"
         description: "See https://github.com/SignalRichard/dafny-library-compendium-csharpnativetypes"
         version: ${{ needs.SemanticVersion.outputs.semantic_version }}
