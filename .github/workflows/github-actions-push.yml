@@ -78,7 +78,6 @@ jobs:
   Release:
     if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
-    environment: Cloudsmith
     needs:
     - SemanticVersion
     - Build
@@ -105,16 +104,3 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
         GH_REF: ${{ github.ref }}
-    - name: Publish Cloudsmith
-      uses: cloudsmith-io/action@master
-      with:
-        api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
-        command: "push"
-        format: "raw"
-        owner: "cosmo-athenaeum"
-        repo: "dafny"
-        file: "a/${{ env.ARTIFACT_NAME }}/${{ env.PACKAGE_NAME}}"
-        name: "${{ env.PACKAGE_NAME }}"
-        summary: "Dafny newtype declarations for C# native types"
-        description: "See https://github.com/SignalRichard/dafny-library-compendium-csharpnativetypes"
-        version: ${{ needs.SemanticVersion.outputs.semantic_version }}
