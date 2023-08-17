@@ -13,6 +13,7 @@ env:
   PACKAGE_NAME: Compendium.CSharpNativeTypes.doo
   ARTIFACT_NAME: library
   NODE_VERSION: '18'
+  DAFNY_VERSION: '4.2.0'
 defaults:
   run:
     shell: pwsh
@@ -52,7 +53,7 @@ jobs:
     - name: "Install Dafny"
       uses: dafny-lang/setup-dafny-action@v1
       with:
-        dafny-version: "4.2.0"
+        dafny-version: ${{ env.DAFNY_VERSION }}
     - name: Dafny Verify
       run: ./../build/scripts/Test-Dafny.ps1 -InputFiles @("${{ env.SCRIPT_NAME }}.dfy")
   Build:
@@ -70,7 +71,7 @@ jobs:
     - name: "Install Dafny"
       uses: dafny-lang/setup-dafny-action@v1
       with:
-        dafny-version: "4.2.0"
+        dafny-version: ${{ env.DAFNY_VERSION }}
     - name: Dafny Build
       run: ./../build/scripts/Build-Dafny.ps1 -InputFiles @("${{ env.SCRIPT_NAME }}.dfy") -OutputFile "${{ env.PACKAGE_NAME }}"
     - name: Publish Artifact
